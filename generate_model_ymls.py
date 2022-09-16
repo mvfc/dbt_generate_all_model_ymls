@@ -1,5 +1,6 @@
 import os
 import subprocess
+import re
 
 models_dir = os.getcwd()+'\models'
 
@@ -37,18 +38,25 @@ def generate_node_yml(model_name):
         print(f'Error while running dbt command for model {model_name}')
     return model_yml
 
-
 node_list = clean_model_list(list_models_in_dir(models_dir))
 for node in node_list:
-    yml = generate_node_yml(node).split('version: 2')[1]
-    yml = 'version: 2\n\n'+yml
+    print(f'Creating YML for model {node}\n')
+    try:
+        yml = re.sub(r'(\r\n){2,}', '\r\n', generate_node_yml(node).split('version: 2')[1])
+        yml = 'version: 2\n\n'+yml
+    except:
+        yml = generate_node_yml(node)
+        print(f'Be careful with the header on YML for model {node}\n\r\n')
     try:
         os.mkdir('generated_ymls')
+        print('Couldnt find folder generated_ymls, creating it...\n')
+        print('Folder generated_ymls created.\n')
     except:
         pass
     try:
         f = open(os.getcwd()+'\generated_ymls\\'+node+'.yml', "w")
         f.write(yml)
         f.close()
+        print(f'YML file for model {node} created successfuly\n')
     except:
         print(f'Error on generating YML for node {node}')
