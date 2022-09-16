@@ -1,6 +1,21 @@
 import os
 import subprocess
 import re
+import logging
+
+def set_logging_options():
+    LOG_FORMAT = "%(asctime)s %(levelname)s: %(message)s"
+    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format=LOG_FORMAT,
+        datefmt=DATE_FORMAT,
+    )
+
+    logging.getLogger("py4j").setLevel(logging.WARNING)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
 
 models_dir = os.getcwd()+'\models'
 
@@ -35,27 +50,32 @@ def generate_node_yml(model_name):
     try:
         model_yml = subprocess.run("""dbt run-operation generate_model_yaml --args \"{\'model_name\':\'"""+model_name+"""\'}\" """, stdout=subprocess.PIPE).stdout.decode('utf-8')
     except ValueError:
-        print(f'Error while running dbt command for model {model_name}')
+        logging.warning(f'Error while running dbt command for model {model_name}')
     return model_yml
 
-node_list = clean_model_list(list_models_in_dir(models_dir))
-for node in node_list:
-    print(f'Creating YML for model {node}\n')
-    try:
-        yml = re.sub(r'(\r\n){2,}', '\r\n', generate_node_yml(node).split('version: 2')[1])
-        yml = 'version: 2\n\n'+yml
+
+def run():
+    set_logging_options()
+    node_list = clean_model_list(list_models_in_dir(models_dir))
+    for node in node_list:
+        logging.info(f'Creating YML for model {node}')
         try:
-            os.mkdir('generated_ymls')
-            print('Couldnt find folder generated_ymls, creating it...\n')
-            print('Folder generated_ymls created.\n')
+            yml = re.sub(r'(\r\n){2,}', '\r\n', generate_node_yml(node).split('version: 2')[1])
+            yml = 'version: 2\n\n'+yml
+            try:
+                os.mkdir('generated_ymls')
+                logging.warning('Couldnt find folder generated_ymls, creating it...')
+                logging.info('Folder generated_ymls created')
+            except:
+                pass
+            try:
+                f = open(os.getcwd()+'\generated_ymls\\'+node+'.yml', "w")
+                f.write(yml)
+                f.close()
+                logging.info(f'YML file for model {node} created successfuly')
+            except:
+                logging.warning(f'WARNING: Error on saving YML file for node {node}')
         except:
-            pass
-        try:
-            f = open(os.getcwd()+'\generated_ymls\\'+node+'.yml', "w")
-            f.write(yml)
-            f.close()
-            print(f'YML file for model {node} created successfuly\n')
-        except:
-            print(f'Error on generating YML for node {node}')
-    except:
-        print(f'WARNING: Failure generating YML for model {node}\n\r\n')
+            logging.warning(f'WARNING: Failure generating YML for model {node}')
+
+run()
