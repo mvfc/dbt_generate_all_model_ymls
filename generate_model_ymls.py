@@ -46,7 +46,7 @@ for node in node_list:
         yml = 'version: 2\n\n'+yml
     except:
         yml = generate_node_yml(node)
-        print(f'Be careful with the header on YML for model {node}\n\r\n')
+        print(f'WARNING: Failure generating YML for model {node}\n\r\n')
     try:
         os.mkdir('generated_ymls')
         print('Couldnt find folder generated_ymls, creating it...\n')
