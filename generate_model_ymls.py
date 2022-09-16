@@ -44,19 +44,18 @@ for node in node_list:
     try:
         yml = re.sub(r'(\r\n){2,}', '\r\n', generate_node_yml(node).split('version: 2')[1])
         yml = 'version: 2\n\n'+yml
+        try:
+            os.mkdir('generated_ymls')
+            print('Couldnt find folder generated_ymls, creating it...\n')
+            print('Folder generated_ymls created.\n')
+        except:
+            pass
+        try:
+            f = open(os.getcwd()+'\generated_ymls\\'+node+'.yml', "w")
+            f.write(yml)
+            f.close()
+            print(f'YML file for model {node} created successfuly\n')
+        except:
+            print(f'Error on generating YML for node {node}')
     except:
-        yml = generate_node_yml(node)
         print(f'WARNING: Failure generating YML for model {node}\n\r\n')
-    try:
-        os.mkdir('generated_ymls')
-        print('Couldnt find folder generated_ymls, creating it...\n')
-        print('Folder generated_ymls created.\n')
-    except:
-        pass
-    try:
-        f = open(os.getcwd()+'\generated_ymls\\'+node+'.yml', "w")
-        f.write(yml)
-        f.close()
-        print(f'YML file for model {node} created successfuly\n')
-    except:
-        print(f'Error on generating YML for node {node}')
