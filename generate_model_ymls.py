@@ -3,6 +3,14 @@ import subprocess
 import re
 import logging
 
+# Initializing variables
+
+models_dir = os.getcwd()+'\models'
+
+dir_list = os.listdir(models_dir)
+
+# Defining logging options
+
 def set_logging_options():
     LOG_FORMAT = "%(asctime)s %(levelname)s: %(message)s"
     DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -17,12 +25,12 @@ def set_logging_options():
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
 
-models_dir = os.getcwd()+'\models'
-
-dir_list = os.listdir(models_dir)
+# returns the list of everything inside that directory
 
 def get_files_in_dir(dir):
     return os.listdir(dir)
+
+# lists all model .sql files in specific directory and its subdirectories recursively
 
 def list_models_in_dir(dir):
     model_list = []
@@ -40,11 +48,15 @@ def list_models_in_dir(dir):
             pass
     return model_list
 
+# cleans the list by taking only the model name and ignoring the project name
+
 def clean_model_list(model_list):
     clean_list = []
     for model in model_list:
         clean_list.append(model.split('.')[0])
     return clean_list
+
+# runs the generate_model_yaml macro from dbt-codegen for a set model
 
 def generate_node_yml(model_name):
     try:
@@ -53,6 +65,7 @@ def generate_node_yml(model_name):
         logging.warning(f'Error while running dbt command for model {model_name}')
     return model_yml
 
+# ties everything together and produces the end result, which is a single YML file for each model
 
 def run():
     set_logging_options()
